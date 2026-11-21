@@ -1,0 +1,369 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Forecast | SME BI System</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 25px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #123c69;
+        }
+
+        .header p {
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            background: #ffffff;
+            color: #123c69;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid #dbe3ed;
+            font-weight: bold;
+        }
+
+        .nav a:hover {
+            background: #123c69;
+            color: white;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #123c69;
+        }
+
+        .insight {
+            background: #eaf3ff;
+            border-left: 5px solid #2563eb;
+            padding: 18px;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .chart-container {
+            height: 380px;
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 14px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            background: #123c69;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .forecast-value {
+            color: #ea580c;
+            font-weight: bold;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 16px;
+            background: #123c69;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .back-button:hover {
+            background: #1d4ed8;
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 9px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <div>
+            <h1>Sales Forecasting</h1>
+            <p>Business Intelligence and Revenue Prediction</p>
+        </div>
+
+        <div>
+            Welcome, {{ session.get("user_name", "User") }} |
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
+
+    <div class="nav">
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('sales') }}">Sales</a>
+        <a href="{{ url_for('analytics') }}">Financial Analytics</a>
+        <a href="{{ url_for('products') }}">Products</a>
+        <a href="{{ url_for('forecast') }}">Sales Forecast</a>
+    </div>
+
+    <div class="card">
+        <h2>Revenue Forecast</h2>
+
+        {% if actual_months|length == 0 %}
+
+            <div class="empty">
+                <h3>No sales data available yet.</h3>
+                <p>Record sales first to generate your revenue forecast.</p>
+                <a href="{{ url_for('sales') }}" class="back-button">
+                    Record Sales
+                </a>
+            </div>
+
+        {% else %}
+
+            <div class="chart-container">
+                <canvas id="forecastChart"></canvas>
+            </div>
+
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>Business Insight</h2>
+
+        <div class="insight">
+            {{ insight }}
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Next 3 Months Forecast</h2>
+
+        {% if forecast_months %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Forecast Revenue (KSh)</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in forecast_months %}
+                <tr>
+                    <td>{{ item.month }}</td>
+                    <td class="forecast-value">
+                        KSh {{ "{:,.2f}".format(item.revenue) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% else %}
+
+            <div class="empty">
+                More monthly sales data is required to calculate a forecast.
+            </div>
+
+        {% endif %}
+    </div>
+
+</div>
+
+{% if actual_months %}
+
+<script>
+    const actualMonths = {{ actual_months | tojson }};
+    const forecastMonths = {{ forecast_months | tojson }};
+
+    const labels = [
+        ...actualMonths.map(item => item.month),
+        ...forecastMonths.map(item => item.month)
+    ];
+
+    const actualValues = [
+        ...actualMonths.map(item => Number(item.revenue)),
+        ...forecastMonths.map(() => null)
+    ];
+
+    const forecastValues = [
+        ...actualMonths.map(() => null),
+        ...forecastMonths.map(item => Number(item.revenue))
+    ];
+
+    if (actualMonths.length > 0 && forecastMonths.length > 0) {
+        forecastValues[actualMonths.length - 1] =
+            Number(actualMonths[actualMonths.length - 1].revenue);
+    }
+
+    const canvas = document.getElementById("forecastChart");
+
+    if (canvas) {
+        const ctx = canvas.getContext("2d");
+
+        new Chart(ctx, {
+            type: "line",
+
+            data: {
+                labels: labels,
+
+                datasets: [
+                    {
+                        label: "Actual Revenue",
+                        data: actualValues,
+                        borderColor: "#2563eb",
+                        backgroundColor: "rgba(37, 99, 235, 0.1)",
+                        borderWidth: 3,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        spanGaps: false
+                    },
+
+                    {
+                        label: "Forecast Revenue",
+                        data: forecastValues,
+                        borderColor: "#ea580c",
+                        backgroundColor: "rgba(234, 88, 12, 0.1)",
+                        borderWidth: 3,
+                        borderDash: [7, 5],
+                        tension: 0.3,
+                        pointRadius: 5,
+                        spanGaps: true
+                    }
+                ]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                interaction: {
+                    intersect: false,
+                    mode: "index"
+                },
+
+                plugins: {
+                    legend: {
+                        position: "top"
+                    },
+
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = Number(context.raw || 0);
+
+                                return context.dataset.label + ": KSh " +
+                                    value.toLocaleString("en-KE", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    });
+                            }
+                        }
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+
+                        ticks: {
+                            callback: function(value) {
+                                return "KSh " +
+                                    Number(value).toLocaleString("en-KE");
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+{% endif %}
+
+</body>
+</html>

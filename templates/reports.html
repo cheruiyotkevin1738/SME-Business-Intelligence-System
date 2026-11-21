@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Reports | SME Business Intelligence</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 18px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        header h2 {
+            margin: 0;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+        }
+
+        nav {
+            background: #1e3a8a;
+            padding: 14px 5%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        main {
+            width: 92%;
+            max-width: 1250px;
+            margin: 30px auto;
+        }
+
+        .panel {
+            background: white;
+            padding: 22px;
+            margin-bottom: 22px;
+            border-radius: 9px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: end;
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        select, input {
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            min-width: 180px;
+        }
+
+        button, .export-button, .reset-button {
+            display: inline-block;
+            padding: 11px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            color: white;
+        }
+
+        button {
+            background: #1d4ed8;
+        }
+
+        .export-button {
+            background: #15803d;
+        }
+
+        .reset-button {
+            background: #64748b;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #eff6ff;
+            color: #172554;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 25px;
+            color: #64748b;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 22px;
+            color: #64748b;
+        }
+
+        @media (max-width: 650px) {
+            header {
+                align-items: flex-start;
+            }
+
+            .filter-group, select, input {
+                width: 100%;
+            }
+
+            .filter-form {
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>SME Business Intelligence</h2>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</header>
+
+<nav>
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('products') }}">Products</a>
+    <a href="{{ url_for('sales') }}">Sales</a>
+    <a href="{{ url_for('suppliers') }}">Suppliers</a>
+    <a href="{{ url_for('expenses') }}">Expenses</a>
+    <a href="{{ url_for('analytics') }}">Analytics</a>
+    <a href="{{ url_for('reports') }}">Custom Reports</a>
+</nav>
+
+<main>
+
+    <h1>Custom Business Reports</h1>
+    <p>Generate, review and export reports about your business performance.</p>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <section class="panel">
+        <h2>Report Configuration</h2>
+
+        <form method="GET" action="{{ url_for('reports') }}"
+              class="filter-form">
+
+            <div class="filter-group">
+                <label for="type">Select Report</label>
+
+                <select name="type" id="type">
+                    <option value="sales"
+                        {% if report_type == 'sales' %}selected{% endif %}>
+                        Sales Report
+                    </option>
+
+                    <option value="profit_loss"
+                        {% if report_type == 'profit_loss' %}selected{% endif %}>
+                        Profit and Loss Report
+                    </option>
+
+                    <option value="expenses"
+                        {% if report_type == 'expenses' %}selected{% endif %}>
+                        Expense Report
+                    </option>
+
+                    <option value="inventory"
+                        {% if report_type == 'inventory' %}selected{% endif %}>
+                        Inventory Report
+                    </option>
+
+                    <option value="product_performance"
+                        {% if report_type == 'product_performance' %}selected{% endif %}>
+                        Product Performance Report
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="start_date">Start Date</label>
+                <input type="date" name="start_date" id="start_date"
+                       value="{{ start_date }}">
+            </div>
+
+            <div class="filter-group">
+                <label for="end_date">End Date</label>
+                <input type="date" name="end_date" id="end_date"
+                       value="{{ end_date }}">
+            </div>
+
+            <button type="submit">Generate Report</button>
+
+        </form>
+
+        <p>
+            Date filters apply to sales, expenses, profit and loss,
+            and product performance reports. Inventory is a current snapshot.
+        </p>
+    </section>
+
+    <section class="panel">
+
+        <h2>{{ title }}</h2>
+
+        <p>Records displayed: <strong>{{ rows|length }}</strong></p>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        {% for header in headers %}
+                            <th>{{ header }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            {% for value in row %}
+                                <td>
+                                    {% if value is number %}
+                                        {{ "%.2f"|format(value) }}
+                                    {% else %}
+                                        {{ value if value is not none else "" }}
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="{{ headers|length or 1 }}"
+                                class="empty">
+                                No records available for this report.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="actions">
+            <a class="export-button"
+               href="{{ url_for('export_custom_report',
+                                type=report_type,
+                                start_date=start_date,
+                                end_date=end_date) }}">
+                Download CSV Report
+            </a>
+
+            <a class="reset-button"
+               href="{{ url_for('reports') }}">
+                Clear Filters
+            </a>
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    SME Business Intelligence System | Custom Reporting
+</footer>
+
+</body>
+</html>

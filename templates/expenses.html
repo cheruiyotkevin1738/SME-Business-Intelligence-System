@@ -1,0 +1,318 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses | SME Business Intelligence</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            color: #222;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 20px 5%;
+        }
+
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 18px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover { color: #93c5fd; }
+
+        .account {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .account-name {
+            color: #dbeafe;
+            font-size: 14px;
+        }
+
+        .logout {
+            background: #dc2626;
+            padding: 9px 13px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .logout:hover {
+            background: #b91c1c;
+            color: white;
+        }
+
+        main { padding: 25px 5%; }
+
+        .panel {
+            background: white;
+            padding: 22px;
+            margin-bottom: 22px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        input, select, button {
+            padding: 11px;
+            margin: 6px 4px 6px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+        }
+
+        button, .export {
+            background: #2563eb;
+            color: white;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 10px 14px;
+            text-decoration: none;
+        }
+
+        button:hover, .export:hover {
+            background: #1d4ed8;
+        }
+
+        .delete { background: #dc2626; }
+        .delete:hover { background: #b91c1c; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th { background: #eaf0ff; }
+
+        .table-wrap { overflow-x: auto; }
+
+        .message {
+            padding: 10px;
+            background: #e0f2fe;
+            margin-bottom: 12px;
+            border-radius: 5px;
+        }
+
+        .total {
+            font-size: 24px;
+            font-weight: bold;
+            color: #b45309;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .category-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .category-card h4 {
+            color: #64748b;
+            margin: 0 0 10px;
+        }
+
+        .category-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #172554;
+        }
+
+        .empty {
+            color: #64748b;
+            padding: 15px 0;
+        }
+
+        @media (max-width: 650px) {
+            nav { gap: 14px; }
+
+            .account {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            input, select {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>SME Business Intelligence System</h1>
+
+    <nav>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('products') }}">Products</a>
+        <a href="{{ url_for('sales') }}">Sales</a>
+        <a href="{{ url_for('suppliers') }}">Suppliers</a>
+        <a href="{{ url_for('expenses') }}">Expenses</a>
+        <a href="{{ url_for('analytics') }}">Analytics</a>
+
+        <div class="account">
+            <span class="account-name">
+                Welcome, {{ session.get('user_name', 'User') }}
+            </span>
+            <a class="logout" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <h2>Expense Management</h2>
+    <p>Record and monitor your business spending by category.</p>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <section class="panel">
+        <h3>Record an Expense</h3>
+
+        <form method="POST" action="{{ url_for('expenses') }}">
+            <input
+                type="text"
+                name="description"
+                placeholder="Expense description"
+                maxlength="200"
+                required
+            >
+
+            <select name="category" required>
+                <option value="">Select expense category</option>
+
+                {% for category in expense_categories %}
+                <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+
+            <input
+                type="number"
+                name="amount"
+                placeholder="Amount (KSh)"
+                min="0.01"
+                step="0.01"
+                required
+            >
+
+            <button type="submit">Add Expense</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h3>Expense Summary</h3>
+
+        <p class="total">
+            KSh {{ "%.2f"|format(total_expenses) }}
+        </p>
+
+        <p>
+            <a class="export" href="{{ url_for('export_expenses') }}">
+                Export Expenses CSV
+            </a>
+        </p>
+    </section>
+
+    <section class="panel">
+        <h3>Spending by Category</h3>
+
+        {% if category_totals %}
+        <div class="category-grid">
+            {% for item in category_totals %}
+            <div class="category-card">
+                <h4>{{ item.category or 'Other' }}</h4>
+                <div class="category-amount">
+                    KSh {{ "%.2f"|format(item.total or 0) }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty">No expense categories available yet.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <h3>Expense Records</h3>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount (KSh)</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for expense in expenses %}
+                    <tr>
+                        <td>{{ expense.id }}</td>
+                        <td>{{ expense.description }}</td>
+                        <td>{{ expense.category or 'Other' }}</td>
+                        <td>{{ "%.2f"|format(expense.amount) }}</td>
+                        <td>{{ expense.expense_date }}</td>
+
+                        <td>
+                            <form
+                                method="POST"
+                                action="{{ url_for('delete_expense', expense_id=expense.id) }}"
+                            >
+                                <button class="delete" type="submit">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="6">No expenses recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

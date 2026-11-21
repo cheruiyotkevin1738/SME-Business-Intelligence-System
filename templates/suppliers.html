@@ -1,0 +1,268 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Management</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #263449;
+            margin: 0;
+        }
+
+        header {
+            background: #142b4a;
+            color: white;
+            padding: 25px 5%;
+        }
+
+        nav {
+            background: #203e63;
+            padding: 15px 5%;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+        }
+
+        nav a:hover { color: #8fc7ff; }
+
+        .account {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .account-name {
+            color: #d5e2f1;
+            font-size: 14px;
+        }
+
+        .logout {
+            background: #dc2626;
+            padding: 9px 13px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .logout:hover {
+            background: #b91c1c;
+            color: white;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .panel {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 12px #0000000d;
+        }
+
+        h2 {
+            color: #173b65;
+            margin-top: 0;
+        }
+
+        form.add-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccd5e0;
+            border-radius: 6px;
+        }
+
+        button {
+            background: #2168ad;
+            color: white;
+            padding: 11px 16px;
+            border: 0;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button.delete { background: #b83232; }
+
+        .table-wrapper { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #e5eaf0;
+        }
+
+        th {
+            background: #eef4fb;
+            color: #173b65;
+        }
+
+        .message {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #e2f5e9;
+            color: #176b36;
+            border-radius: 6px;
+        }
+
+        .message.error {
+            background: #ffe6e6;
+            color: #a12626;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #78869a;
+        }
+
+        @media (max-width: 650px) {
+            nav { gap: 14px; }
+
+            .account {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Supplier Management</h1>
+    <p>Manage your business supplier information</p>
+</header>
+
+<nav>
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('products') }}">Products</a>
+    <a href="{{ url_for('sales') }}">Sales</a>
+    <a href="{{ url_for('suppliers') }}">Suppliers</a>
+    <a href="{{ url_for('expenses') }}">Expenses</a>
+    <a href="{{ url_for('analytics') }}">Business Analytics</a>
+
+    <div class="account">
+        <span class="account-name">
+            Welcome, {{ session.get('user_name', 'User') }}
+        </span>
+        <a class="logout" href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="panel">
+        <h2>Add New Supplier</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form class="add-form" method="POST" action="{{ url_for('suppliers') }}">
+            <input
+                type="text"
+                name="name"
+                placeholder="Supplier name"
+                required
+            >
+
+            <input
+                type="text"
+                name="phone"
+                placeholder="Phone number"
+            >
+
+            <input
+                type="email"
+                name="email"
+                placeholder="Email address"
+            >
+
+            <button type="submit">Add Supplier</button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>Supplier Records</h2>
+
+        {% if suppliers %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for supplier in suppliers %}
+                    <tr>
+                        <td>{{ supplier['id'] }}</td>
+                        <td>{{ supplier['name'] }}</td>
+                        <td>{{ supplier['phone'] or '-' }}</td>
+                        <td>{{ supplier['email'] or '-' }}</td>
+
+                        <td>
+                            <form
+                                method="POST"
+                                action="{{ url_for('delete_supplier', supplier_id=supplier['id']) }}"
+                                onsubmit="return confirm('Delete this supplier?')"
+                            >
+                                <button class="delete" type="submit">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+            <p>No suppliers have been added yet.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<footer>
+    SME Business Intelligence System | Supplier Management
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | SME BI System</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: #eef2ff;
+        }
+        .container {
+            background: white;
+            width: 90%;
+            max-width: 420px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+        }
+        h1 { color: #172554; text-align: center; }
+        p { color: #64748b; text-align: center; }
+        label { display: block; margin-top: 15px; font-weight: bold; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 7px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+        }
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 22px;
+            border: 0;
+            border-radius: 6px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        a { color: #2563eb; text-decoration: none; }
+        .message {
+            padding: 10px;
+            margin-top: 10px;
+            background: #fee2e2;
+            border-radius: 5px;
+            color: #991b1b;
+        }
+        .bottom { margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Create Account</h1>
+    <p>Join the SME Business Intelligence System</p>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+        <label>Full Name</label>
+        <input type="text" name="full_name" placeholder="Enter your full name" required>
+
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="Enter your email" required>
+
+        <label>Password</label>
+        <input type="password" name="password" minlength="8" placeholder="At least 8 characters" required>
+
+        <label>Confirm Password</label>
+        <input type="password" name="confirm_password" minlength="8" placeholder="Confirm your password" required>
+
+        <button type="submit">Register</button>
+    </form>
+
+    <p class="bottom">
+        Already have an account?
+        <a href="{{ url_for('login') }}">Log in</a>
+    </p>
+</div>
+</body>
+</html>

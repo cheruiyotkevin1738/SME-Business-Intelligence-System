@@ -1,0 +1,420 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales | SME Business Intelligence</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            color: #222;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 20px 5%;
+        }
+
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 18px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover { color: #93c5fd; }
+
+        .account {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .account-name {
+            color: #dbeafe;
+            font-size: 14px;
+        }
+
+        .logout {
+            background: #dc2626;
+            padding: 9px 13px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .logout:hover {
+            background: #b91c1c;
+            color: white;
+        }
+
+        main { padding: 25px 5%; }
+
+        .panel {
+            background: white;
+            padding: 22px;
+            margin-bottom: 22px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        input, select, button {
+            padding: 10px;
+            margin: 6px 4px 6px 0;
+        }
+
+        input, select {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button, .export, .reset {
+            background: #2563eb;
+            color: white;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 10px 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        button:hover, .export:hover {
+            background: #1d4ed8;
+        }
+
+        .reset {
+            background: #64748b;
+        }
+
+        .reset:hover {
+            background: #475569;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #2563eb;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .summary-card h3 {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0 0 12px;
+        }
+
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #172554;
+            overflow-wrap: anywhere;
+        }
+
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th { background: #eaf0ff; }
+
+        .message {
+            padding: 10px;
+            background: #e0f2fe;
+            margin-bottom: 12px;
+            border-radius: 5px;
+        }
+
+        .filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: end;
+            gap: 10px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .total {
+            font-size: 22px;
+            font-weight: bold;
+            color: #166534;
+        }
+
+        .empty {
+            text-align: center;
+            color: #64748b;
+            padding: 20px;
+        }
+
+        @media (max-width: 750px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            nav { gap: 14px; }
+
+            .account {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .filter-form {
+                align-items: stretch;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .filter-group input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>SME Business Intelligence System</h1>
+
+    <nav>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('products') }}">Products</a>
+        <a href="{{ url_for('sales') }}">Sales</a>
+        <a href="{{ url_for('suppliers') }}">Suppliers</a>
+        <a href="{{ url_for('expenses') }}">Expenses</a>
+        <a href="{{ url_for('analytics') }}">Analytics</a>
+
+        <div class="account">
+            <span class="account-name">
+                Welcome, {{ session.get('user_name', 'User') }}
+            </span>
+            <a class="logout" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <h2>Sales Management & Reporting</h2>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <section class="panel">
+        <h3>Record a Sale</h3>
+
+        <form method="POST" action="{{ url_for('sales') }}">
+            <select name="product_id" required>
+                <option value="">Select product</option>
+
+                {% for product in products %}
+                    <option value="{{ product.id }}">
+                        {{ product.name }} — Stock: {{ product.quantity }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <input
+                type="number"
+                name="quantity"
+                placeholder="Quantity sold"
+                min="1"
+                required
+            >
+
+            <button type="submit">Record Sale</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h3>Filter Sales by Date</h3>
+
+        <form method="GET" action="{{ url_for('sales') }}" class="filter-form">
+            <div class="filter-group">
+                <label for="start_date">Start Date</label>
+                <input
+                    type="date"
+                    id="start_date"
+                    name="start_date"
+                    value="{{ start_date }}"
+                >
+            </div>
+
+            <div class="filter-group">
+                <label for="end_date">End Date</label>
+                <input
+                    type="date"
+                    id="end_date"
+                    name="end_date"
+                    value="{{ end_date }}"
+                >
+            </div>
+
+            <button type="submit">Apply Filter</button>
+
+            <a class="reset" href="{{ url_for('sales') }}">
+                Clear Filter
+            </a>
+        </form>
+
+        <p>
+            {% if start_date or end_date %}
+                Showing sales
+                {% if start_date %}from {{ start_date }}{% endif %}
+                {% if end_date %}to {{ end_date }}{% endif %}.
+            {% else %}
+                Showing all recorded sales.
+            {% endif %}
+        </p>
+    </section>
+
+    <h3>Sales Performance Summary</h3>
+
+    <section class="summary-grid">
+        <div class="summary-card">
+            <h3>Total Revenue</h3>
+            <div class="summary-value">
+                {{ "%.2f"|format(total_revenue) }}
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <h3>Units Sold</h3>
+            <div class="summary-value">
+                {{ units_sold }}
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <h3>Number of Transactions</h3>
+            <div class="summary-value">
+                {{ transaction_count }}
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h3>Best-Selling Products</h3>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Units Sold</th>
+                        <th>Revenue</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for product in top_products %}
+                    <tr>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.units_sold }}</td>
+                        <td>{{ "%.2f"|format(product.revenue) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="empty">
+                            No product sales found for this period.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h3>Sales History</h3>
+
+        <p>
+            <a
+                class="export"
+                href="{{ url_for('export_sales', start_date=start_date, end_date=end_date) }}"
+            >
+                Export Filtered Sales CSV
+            </a>
+        </p>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>{{ sale.id }}</td>
+                        <td>{{ sale.product_name }}</td>
+                        <td>{{ sale.quantity }}</td>
+                        <td>{{ "%.2f"|format(sale.unit_price) }}</td>
+                        <td>{{ "%.2f"|format(sale.total) }}</td>
+                        <td>{{ sale.sale_date }}</td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="empty">
+                            No sales found for the selected period.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,533 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products | SME Business Intelligence</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            color: #222;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 20px 5%;
+        }
+
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 18px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover { color: #93c5fd; }
+
+        .account {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .account-name {
+            color: #dbeafe;
+            font-size: 14px;
+        }
+
+        .logout {
+            background: #dc2626;
+            padding: 9px 13px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        main { padding: 25px 5%; }
+
+        .panel {
+            background: white;
+            padding: 22px;
+            margin-bottom: 22px;
+            border-radius: 10px;
+        }
+
+        input, select {
+            padding: 10px;
+            margin: 6px 4px 6px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            max-width: 100%;
+        }
+
+        button, .export, .template-link {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 10px 14px;
+            text-decoration: none;
+        }
+
+        button:hover, .export:hover { background: #1d4ed8; }
+
+        .delete { background: #dc2626; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th { background: #eaf0ff; }
+
+        .table-wrap { overflow-x: auto; }
+
+        .message {
+            padding: 12px;
+            background: #e0f2fe;
+            margin-bottom: 12px;
+            border-radius: 5px;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 7px;
+        }
+
+        .low-alert {
+            background: #fef3c7;
+            border-left: 5px solid #d97706;
+        }
+
+        .out-alert {
+            background: #fee2e2;
+            border-left: 5px solid #dc2626;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-normal {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-low {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-out {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-form input,
+        .filter-form select {
+            min-width: 160px;
+        }
+
+        .filter-form button { margin: 6px 4px 6px 0; }
+
+        .clear-link {
+            color: #2563eb;
+            margin-left: 8px;
+        }
+
+        .pagination {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .pagination a {
+            padding: 8px 12px;
+            background: #eaf0ff;
+            color: #172554;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+
+        .pagination a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .pagination a.disabled {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        .small-note {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .import-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media (max-width: 650px) {
+            .account {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            nav { gap: 14px; }
+            main { padding: 18px 3%; }
+            .panel { padding: 15px; }
+            .filter-form { display: block; }
+            .filter-form input, .filter-form select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>SME Business Intelligence System</h1>
+
+    <nav>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('products') }}">Products</a>
+        <a href="{{ url_for('sales') }}">Sales</a>
+        <a href="{{ url_for('suppliers') }}">Suppliers</a>
+        <a href="{{ url_for('expenses') }}">Expenses</a>
+        <a href="{{ url_for('analytics') }}">Analytics</a>
+
+        <div class="account">
+            <span class="account-name">
+                Welcome, {{ session.get('user_name', 'User') }}
+            </span>
+            <a class="logout" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <h2>Product Inventory</h2>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <!-- STOCK ALERTS -->
+
+    {% if out_of_stock_count > 0 %}
+        <div class="alert out-alert">
+            <strong>Out-of-Stock Alert!</strong>
+            {{ out_of_stock_count }} product(s) have completely run out.
+            Please restock them.
+        </div>
+    {% endif %}
+
+    {% if low_stock_count > 0 %}
+        <div class="alert low-alert">
+            <strong>Low-Stock Warning!</strong>
+            {{ low_stock_count }} product(s) have reached their reorder levels.
+            Consider restocking them.
+        </div>
+    {% endif %}
+
+    {% if low_stock_count == 0 and out_of_stock_count == 0 and total_inventory_count > 0 %}
+        <div class="alert" style="background:#dcfce7; border-left:5px solid #16a34a;">
+            <strong>Inventory looks good!</strong>
+            No low-stock or out-of-stock products detected.
+        </div>
+    {% endif %}
+
+    <!-- ADD PRODUCT -->
+
+    <section class="panel">
+        <h3>Add New Product</h3>
+
+        <form method="POST" action="{{ url_for('add_product') }}">
+            <input type="text" name="name" placeholder="Product name" required>
+            <input type="text" name="category" placeholder="Category">
+
+            <input type="number" name="buying_price"
+                   placeholder="Buying price" min="0" step="0.01" required>
+
+            <input type="number" name="selling_price"
+                   placeholder="Selling price" min="0" step="0.01" required>
+
+            <input type="number" name="quantity"
+                   placeholder="Quantity" min="0" required>
+
+            <input type="number" name="reorder_level"
+                   placeholder="Reorder level" min="0" value="5" required>
+
+            <button type="submit">Add Product</button>
+        </form>
+    </section>
+
+    <!-- BULK CSV IMPORT -->
+
+    <section class="panel">
+        <h3>Bulk Product Import</h3>
+
+        <p>
+            Upload a CSV file to add multiple products at once.
+            Existing product names are skipped to prevent duplicates.
+        </p>
+
+        <p class="small-note">
+            Required CSV columns: name, buying_price, selling_price, quantity.
+            Optional columns: category, reorder_level.
+        </p>
+
+        <form class="import-form"
+              method="POST"
+              action="{{ url_for('import_products') }}"
+              enctype="multipart/form-data">
+
+            <input type="file"
+                   name="csv_file"
+                   accept=".csv,text/csv"
+                   required>
+
+            <button type="submit">Import CSV Products</button>
+        </form>
+
+        <p class="small-note">
+            Maximum file size: 5 MB. Maximum import: 5,000 rows.
+        </p>
+    </section>
+
+    <!-- PRODUCTS REQUIRING ATTENTION -->
+
+    {% if out_of_stock_products or low_stock_products %}
+        <section class="panel">
+            <h3>Products Requiring Attention</h3>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Current Quantity</th>
+                            <th>Reorder Level</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for product in out_of_stock_products %}
+                            <tr>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.quantity }}</td>
+                                <td>{{ product.reorder_level }}</td>
+                                <td>
+                                    <span class="status status-out">Out of Stock</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+
+                        {% for product in low_stock_products %}
+                            <tr>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.quantity }}</td>
+                                <td>{{ product.reorder_level }}</td>
+                                <td>
+                                    <span class="status status-low">Low Stock</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+
+    <!-- SEARCH AND FILTERS -->
+
+    <section class="panel">
+        <h3>Search and Filter Inventory</h3>
+
+        <form class="filter-form" method="GET" action="{{ url_for('products') }}">
+            <input type="text"
+                   name="search"
+                   placeholder="Search product or category..."
+                   value="{{ search }}">
+
+            <select name="category">
+                <option value="">All Categories</option>
+                {% for item in categories %}
+                    <option value="{{ item.category }}"
+                        {% if selected_category == item.category %}selected{% endif %}>
+                        {{ item.category }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="stock">
+                <option value="">All Stock Statuses</option>
+                <option value="in_stock"
+                    {% if selected_stock == 'in_stock' %}selected{% endif %}>
+                    In Stock
+                </option>
+                <option value="low_stock"
+                    {% if selected_stock == 'low_stock' %}selected{% endif %}>
+                    Low Stock
+                </option>
+                <option value="out_of_stock"
+                    {% if selected_stock == 'out_of_stock' %}selected{% endif %}>
+                    Out of Stock
+                </option>
+            </select>
+
+            <button type="submit">Apply Filters</button>
+
+            <a class="clear-link" href="{{ url_for('products') }}">Clear Filters</a>
+        </form>
+    </section>
+
+    <!-- INVENTORY RECORDS -->
+
+    <section class="panel">
+        <h3>Inventory Records</h3>
+
+        <p>
+            <a class="export" href="{{ url_for('export_products') }}">
+                Export Full Inventory CSV
+            </a>
+        </p>
+
+        <p class="small-note">
+            Showing {{ products|length }} of {{ total_products }}
+            matching products. Total inventory: {{ total_inventory_count }}.
+        </p>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Buying Price</th>
+                        <th>Selling Price</th>
+                        <th>Quantity</th>
+                        <th>Reorder Level</th>
+                        <th>Stock Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td>{{ product.id }}</td>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.category or "-" }}</td>
+                            <td>{{ "%.2f"|format(product.buying_price) }}</td>
+                            <td>{{ "%.2f"|format(product.selling_price) }}</td>
+                            <td>{{ product.quantity }}</td>
+                            <td>{{ product.reorder_level }}</td>
+
+                            <td>
+                                {% if product.quantity <= 0 %}
+                                    <span class="status status-out">Out of Stock</span>
+                                {% elif product.quantity <= product.reorder_level %}
+                                    <span class="status status-low">Low Stock</span>
+                                {% else %}
+                                    <span class="status status-normal">In Stock</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <form method="POST"
+                                      action="{{ url_for('delete_product', product_id=product.id) }}">
+                                    <button class="delete" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="9">No matching products found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINATION -->
+
+        {% if total_pages > 1 %}
+            <div class="pagination">
+
+                {% if page > 1 %}
+                    <a href="{{ url_for('products', page=page-1, search=search, category=selected_category, stock=selected_stock) }}">
+                        Previous
+                    </a>
+                {% else %}
+                    <a class="disabled" href="#">Previous</a>
+                {% endif %}
+
+                {% for page_number in range(1, total_pages + 1) %}
+                    <a href="{{ url_for('products', page=page_number, search=search, category=selected_category, stock=selected_stock) }}"
+                       class="{% if page_number == page %}active{% endif %}">
+                        {{ page_number }}
+                    </a>
+                {% endfor %}
+
+                {% if page < total_pages %}
+                    <a href="{{ url_for('products', page=page+1, search=search, category=selected_category, stock=selected_stock) }}">
+                        Next
+                    </a>
+                {% else %}
+                    <a class="disabled" href="#">Next</a>
+                {% endif %}
+
+            </div>
+        {% endif %}
+    </section>
+
+</main>
+
+</body>
+</html>
