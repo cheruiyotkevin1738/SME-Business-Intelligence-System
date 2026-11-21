@@ -44,6 +44,16 @@ SME-Business-Intelligence-System/
 │
 ├── database/
 │
+├── SCREENSHOTS/
+│   ├── analytics.png
+│   ├── dashboard.png
+│   ├── expenses.png
+│   ├── products.png
+│   ├── reports.png
+│   ├── sales.png
+│   ├── salesforecasting.png
+│   └── suppliers.png
+│
 └── templates/
     ├── dashboard.html
     ├── products.html
@@ -61,7 +71,7 @@ SME-Business-Intelligence-System/
 ### 1. Clone the repository
 
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
+git clone https://github.com/cheruiyotkevin1738/SME-Business-Intelligence-System.git
 ```
 
 ### 2. Open the project folder
@@ -114,28 +124,37 @@ Each user's business records are associated with their account.
 
 ## Screenshots
 
-## Application Screenshots
+### 1. Analytics
 
-### 1. Dashboard
-![Dashboard](screenshots/01-dashboard.png)
+![Analytics](SCREENSHOTS/analytics.png)
 
-### 2. Product Management
-![Products](screenshots/02-products.png)
+### 2. Dashboard
 
-### 3. Sales Management
-![Sales](screenshots/03-sales.png)
+![Dashboard](SCREENSHOTS/dashboard.png)
 
-### 4. Supplier Management
-![Suppliers](screenshots/04-suppliers.png)
+### 3. Expenses
 
-### 5. Expense Tracking
-![Expenses](screenshots/05-expenses.png)
+![Expenses](SCREENSHOTS/expenses.png)
 
-### 6. Business Analytics
-![Analytics](screenshots/06-analytics.png)
+### 4. Products
 
-### 7. Custom Reports
-![Custom Reports](screenshots/07-reports.png)
+![Products](SCREENSHOTS/products.png)
+
+### 5. Reports
+
+![Reports](SCREENSHOTS/reports.png)
+
+### 6. Sales
+
+![Sales](SCREENSHOTS/sales.png)
+
+### 7. Sales Forecasting
+
+![Sales Forecasting](SCREENSHOTS/salesforecasting.png)
+
+### 8. Suppliers
+
+![Suppliers](SCREENSHOTS/suppliers.png)
 
 ## Project Purpose
 
